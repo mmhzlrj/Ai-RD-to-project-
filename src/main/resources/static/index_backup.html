@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跨境电商产品管理系统</title>
+    <!-- 引入Vue.js -->
+    <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+    <!-- 引入Element UI -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <!-- 引入Axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', Arial, sans-serif;
+        }
+        #app {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+        .card-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .form-item {
+            margin-bottom: 15px;
+        }
+        .form-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        .form-item input, .form-item textarea, .form-item select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .product-table th, .product-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .product-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+        }
+        .product-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .action-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .edit-btn {
+            background: #409eff;
+            color: white;
+        }
+        .delete-btn {
+            background: #f56c6c;
+            color: white;
+        }
+        .search-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .batch-operation {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
+        }
+        .batch-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s, fadeOut 0.5s 2.5s;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .error {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+        .tabs {
+            margin-bottom: 20px;
+        }
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            background: #f0f0f0;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .file-upload input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        .file-upload-label {
+            display: block;
+            color: #666;
+            font-size: 14px;
+        }
+        .file-upload-label i {
+            display: block;
+            font-size: 48px;
+            margin-bottom: 10px;
+            color: #999;
+        }
+        .import-result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #409eff;
+        }
+        .import-result h4 {
+            margin-top: 0;
+        }
+        .import-result pre {
+            background: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            overflow: auto;
+            max-height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1>跨境电商产品管理系统</h1>
+            <p>现代化、高效的产品管理解决方案</p>
+        </div>
+
+        <!-- 通知消息 -->
+        <div v-if="notification.message" :class="['notification', notification.type]">
+            {{ notification.message }}
+        </div>
+
+        <!-- 标签页 -->
+        <el-tabs v-model="activeTab" class="tabs" @tab-click="handleTabClick">
+            <!-- 产品管理标签 -->
+            <el-tab-pane label="产品管理" name="products">
+                <div class="card-container">
+                    <!-- 添加/编辑产品表单 -->
+                    <div class="card">
+                        <div class="card-title">{{ isEditing ? '编辑产品' : '添加产品' }}</div>
+                        <div class="form-item">
+                            <label for="productId">产品ID:</label>
+                            <input id="productId" v-model="currentProduct.id" :disabled="isEditing" required>
+                        </div>
+                        <div class="form-item">
+                            <label for="productName">产品名称:</label>
+                            <input id="productName" v-model="currentProduct.name" required>
+                        </div>
+                        <div class="form-item">
+                            <label for="productDescription">产品描述:</label>
+                            <textarea id="productDescription" v-model="currentProduct.description"></textarea>
+                        </div>
+                        <div class="form-item">
+                            <label for="productPrice">产品价格:</label>
+                            <input id="productPrice" type="number" step="0.01" v-model="currentProduct.price" required>
+                        </div>
+                        <div class="form-item">
+                            <label for="productStock">产品库存:</label>
+                            <input id="productStock" type="number" v-model="currentProduct.stock" required>
+                        </div>
+                        <div class="form-item">
+                            <label for="productCategory">产品分类:</label>
+                            <input id="productCategory" v-model="currentProduct.category" required>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" @click="saveProduct">
+                                {{ isEditing ? '更新产品' : '添加产品' }}
+                            </button>
+                            <button class="btn btn-secondary" @click="resetForm">重置</button>
+                        </div>
+                    </div>
+
+                    <!-- 产品搜索 -->
+                    <div class="card">
+                        <div class="card-title">产品搜索</div>
+                        <div class="search-container">
+                            <div class="form-item">
+                                <label for="searchName">产品名称:</label>
+                                <input id="searchName" v-model="searchParams.name" placeholder="支持模糊搜索">
+                            </div>
+                            <div class="form-item">
+                                <label for="searchCategory">产品分类:</label>
+                                <input id="searchCategory" v-model="searchParams.category" placeholder="输入分类">
+                            </div>
+                            <div class="form-item">
+                                <label for="minPrice">最低价格:</label>
+                                <input id="minPrice" type="number" step="0.01" v-model="searchParams.minPrice">
+                            </div>
+                            <div class="form-item">
+                                <label for="maxPrice">最高价格:</label>
+                                <input id="maxPrice" type="number" step="0.01" v-model="searchParams.maxPrice">
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-success" @click="searchProducts">搜索</button>
+                            <button class="btn btn-secondary" @click="loadAllProducts">显示所有</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 批量操作 -->
+                <div class="batch-operation">
+                    <div class="card-title">批量操作</div>
+                    <div class="batch-controls">
+                        <div>
+                            <label>已选中 {{ selectedProducts.length }} 个产品</label>
+                            <div v-if="selectedProducts.length > 0">
+                                <p>选中的产品ID: {{ selectedProducts.join(', ') }}</p>
+                            </div>
+                        </div>
+                        <div class="form-item">
+                            <label for="batchPriceAdjustment">价格调整:</label>
+                            <input id="batchPriceAdjustment" type="number" step="0.01" v-model="batchOperations.priceAdjustment" placeholder="调整金额">
+                            <div class="btn-group">
+                                <button class="btn btn-primary" @click="batchUpdatePrice">调整价格</button>
+                            </div>
+                        </div>
+                        <div class="form-item">
+                            <label for="batchStockAdjustment">库存调整:</label>
+                            <input id="batchStockAdjustment" type="number" v-model="batchOperations.stockAdjustment" placeholder="新库存数量">
+                            <div class="btn-group">
+                                <button class="btn btn-primary" @click="batchUpdateStock">调整库存</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 产品列表 -->
+                <div class="card">
+                    <div class="card-title">产品列表</div>
+                    <div class="table-container">
+                        <table class="product-table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" @change="toggleSelectAll" :checked="selectedProducts.length === products.length"></th>
+                                    <th @click="sortBy('id')" style="cursor: pointer;">
+                                        ID
+                                        <span v-if="sortKey === 'id'">
+                                            <span v-if="sortOrder === 'asc'">↑</span>
+                                            <span v-else>↓</span>
+                                        </span>
+                                    </th>
+                                    <th @click="sortBy('name')" style="cursor: pointer;">
+                                        名称
+                                        <span v-if="sortKey === 'name'">
+                                            <span v-if="sortOrder === 'asc'">↑</span>
+                                            <span v-else>↓</span>
+                                        </span>
+                                    </th>
+                                    <th @click="sortBy('brand')" style="cursor: pointer;">
+                                        品牌
+                                        <span v-if="sortKey === 'brand'">
+                                            <span v-if="sortOrder === 'asc'">↑</span>
+                                            <span v-else>↓</span>
+                                        </span>
+                                    </th>
+                                    <th @click="sortBy('otherDescription')" style="cursor: pointer;">
+                                        描述
+                                        <span v-if="sortKey === 'otherDescription'">
+                                            <span v-if="sortOrder === 'asc'">↑</span>
+                                            <span v-else>↓</span>
+                                        </span>
+                                    </th>
+                                    <th @click="sortBy('price')" style="cursor: pointer;">
+                                        价格
+                                        <span v-if="sortKey === 'price'">
+                                            <span v-if="sortOrder === 'asc'">↑</span>
+                                            <span v-else>↓</span>
+                                        </span>
+                                    </th>
+                                    <th @click="sortBy('stock')" style="cursor: pointer;">
+                                        库存
+                                        <span v-if="sortKey === 'stock'">
+                                            <span v-if="sortOrder === 'asc'">↑</span>
+                                            <span v-else>↓</span>
+                                        </span>
+                                    </th>
+                                    <th @click="sortBy('category')" style="cursor: pointer;">
+                                        分类
+                                        <span v-if="sortKey === 'category'">
+                                            <span v-if="sortOrder === 'asc'">↑</span>
+                                            <span v-else>↓</span>
+                                        </span>
+                                    </th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="product in sortedProducts" :key="product.id">
+                                    <td><input type="checkbox" :value="product.id" v-model="selectedProducts"></td>
+                                    <td>{{ product.id }}</td>
+                                    <td>{{ product.name }}</td>
+                                    <td>{{ extractBrand(product.description) }}</td>
+                                    <td>{{ extractDescription(product.description) }}</td>
+                                    <td>¥{{ product.price }}</td>
+                                    <td>{{ product.stock }}</td>
+                                    <td>{{ product.category }}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="action-btn edit-btn" @click="editProduct(product)">编辑</button>
+                                            <button class="action-btn" @click="showProductImage(product)" style="background-color: #67c23a;">图片</button>
+                                            <button class="action-btn delete-btn" @click="deleteProduct(product.id)">删除</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr v-if="sortedProducts.length === 0">
+                                    <td colspan="9" style="text-align: center;">暂无产品数据</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </el-tab-pane>
+
+            <!-- 数据导入标签 -->
+            <el-tab-pane label="数据导入" name="import">
+                <div class="card">
+                    <div class="card-title">Excel数据导入</div>
+                    <div class="file-upload">
+                        <input type="file" @change="handleFileUpload" accept=".xlsx,.xls">
+                        <div class="file-upload-label">
+                            <i>📁</i>
+                            点击选择Excel文件<br>
+                            <small>支持 .xlsx 和 .xls 格式</small>
+                        </div>
+                    </div>
+                    
+                    <div v-if="importResult" class="import-result">
+                        <h4>导入结果:</h4>
+                        <p>成功导入 {{ importResult.successCount }} 条产品数据</p>
+                        <p v-if="importResult.errorCount > 0" style="color: red;">
+                            失败 {{ importResult.errorCount }} 条，错误信息：
+                        </p>
+                        <pre v-if="importResult.errors">{{ importResult.errors }}</pre>
+                    </div>
+                </div>
+            </el-tab-pane>
+        </el-tabs>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                activeTab: 'products',
+                products: [],
+                currentProduct: {
+                    id: '',
+                    name: '',
+                    description: '',
+                    price: '',
+                    stock: '',
+                    category: ''
+                },
+                isEditing: false,
+                searchParams: {
+                    name: '',
+                    category: '',
+                    minPrice: '',
+                    maxPrice: ''
+                },
+                selectedProducts: [],
+                batchOperations: {
+                    priceAdjustment: '',
+                    stockAdjustment: ''
+                },
+                sortKey: 'id',
+                sortOrder: 'asc',
+                notification: {
+                    message: '',
+                    type: ''
+                },
+                importResult: null
+            },
+            computed: {
+                sortedProducts() {
+                    // 先过滤产品
+                    let filtered = this.products.filter(product => {
+                        const nameMatch = !this.searchParams.name || 
+                            product.name.toLowerCase().includes(this.searchParams.name.toLowerCase());
+                        
+                        const categoryMatch = !this.searchParams.category || 
+                            product.category.toLowerCase().includes(this.searchParams.category.toLowerCase());
+                        
+                        const minPriceMatch = !this.searchParams.minPrice || 
+                            product.price >= parseFloat(this.searchParams.minPrice);
+                        
+                        const maxPriceMatch = !this.searchParams.maxPrice || 
+                            product.price <= parseFloat(this.searchParams.maxPrice);
+                        
+                        return nameMatch && categoryMatch && minPriceMatch && maxPriceMatch;
+                    });
+                    
+                    // 再进行排序
+                    if (this.sortKey) {
+                        filtered.sort((a, b) => {
+                            let aValue = a[this.sortKey];
+                            let bValue = b[this.sortKey];
+                            
+                            // 特殊处理品牌和描述字段
+                            if (this.sortKey === 'brand') {
+                                aValue = this.extractBrand(a.description);
+                                bValue = this.extractBrand(b.description);
+                            } else if (this.sortKey === 'otherDescription') {
+                                aValue = this.extractDescription(a.description);
+                                bValue = this.extractDescription(b.description);
+                            }
+                            
+                            if (typeof aValue === 'string') {
+                                aValue = aValue.toLowerCase();
+                                bValue = bValue.toLowerCase();
+                            }
+                            
+                            if (this.sortOrder === 'asc') {
+                                return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+                            } else {
+                                return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+                            }
+                        });
+                    }
+                    
+                    return filtered;
+                }
+            },
+            methods: {
+                sortBy(key) {
+                    if (this.sortKey === key) {
+                        // 如果已经是当前排序字段，则切换排序顺序
+                        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        // 否则设置新的排序字段，默认升序
+                        this.sortKey = key;
+                        this.sortOrder = 'asc';
+                    }
+                },
+                
+                extractBrand(description) {
+                    const brandRegex = /品牌[:：]?\s*([^，,。.\n]+)/;
+                    const match = description.match(brandRegex);
+                    return match ? match[1].trim() : '';
+                },
+                
+                extractDescription(description) {
+                    // 移除品牌信息后的剩余描述
+                    const brandRegex = /品牌[:：]?\s*[^，,。.\n]+[，,。.\n]?/;
+                    return description.replace(brandRegex, '').trim();
+                },
+                
+                showProductImage(product) {
+                    alert('产品图片功能待实现\\n产品ID: ' + product.id + '\\n产品名称: ' + product.name);
+                },
+                
+                async loadAllProducts() {
+                    try {
+                        const response = await axios.get('/api/products');
+                        this.products = response.data;
+                        this.resetSearch();
+                    } catch (error) {
+                        console.error('加载产品失败:', error);
+                        this.showNotification('加载产品失败', 'error');
+                    }
+                },
+                
+                async saveProduct() {
+                    if (!this.currentProduct.name || !this.currentProduct.price || !this.currentProduct.stock) {
+                        this.showNotification('请填写必填字段', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        if (this.isEditing) {
+                            await axios.put('/api/products/' + this.currentProduct.id, this.currentProduct);
+                            this.showNotification('产品更新成功', 'success');
+                        } else {
+                            await axios.post('/api/products', this.currentProduct);
+                            this.showNotification('产品添加成功', 'success');
+                        }
+                        this.resetForm();
+                        this.loadAllProducts();
+                    } catch (error) {
+                        console.error('保存产品失败:', error);
+                        this.showNotification('保存产品失败: ' + (error.response?.data?.message || error.message), 'error');
+                    }
+                },
+                
+                editProduct(product) {
+                    this.currentProduct = { ...product };
+                    this.isEditing = true;
+                },
+                
+                async deleteProduct(id) {
+                    if (!confirm('确定要删除这个产品吗？')) {
+                        return;
+                    }
+                    
+                    try {
+                        await axios.delete('/api/products/' + id);
+                        this.showNotification('产品删除成功', 'success');
+                        this.loadAllProducts();
+                    } catch (error) {
+                        console.error('删除产品失败:', error);
+                        this.showNotification('删除产品失败', 'error');
+                    }
+                },
+                
+                resetForm() {
+                    this.currentProduct = {
+                        id: '',
+                        name: '',
+                        description: '',
+                        price: '',
+                        stock: '',
+                        category: ''
+                    };
+                    this.isEditing = false;
+                },
+                
+                resetSearch() {
+                    this.searchParams = {
+                        name: '',
+                        category: '',
+                        minPrice: '',
+                        maxPrice: ''
+                    };
+                },
+                
+                async searchProducts() {
+                    // 搜索逻辑已经在computed属性中实现
+                    // 这里只需要触发重新计算即可
+                    this.$forceUpdate();
+                },
+                
+                toggleSelectAll(event) {
+                    if (event.target.checked) {
+                        this.selectedProducts = this.products.map(p => p.id);
+                    } else {
+                        this.selectedProducts = [];
+                    }
+                },
+                
+                async batchUpdatePrice() {
+                    if (!this.batchOperations.priceAdjustment) {
+                        this.showNotification('请输入价格调整值', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        const adjustment = parseFloat(this.batchOperations.priceAdjustment);
+                        await axios.patch('/api/products/batch/price', {
+                            productIds: this.selectedProducts,
+                            adjustment: adjustment
+                        });
+                        
+                        this.showNotification('批量价格调整成功', 'success');
+                        this.batchOperations.priceAdjustment = '';
+                        this.loadAllProducts();
+                    } catch (error) {
+                        console.error('批量价格调整失败:', error);
+                        this.showNotification('批量价格调整失败', 'error');
+                    }
+                },
+                
+                async batchUpdateStock() {
+                    if (!this.batchOperations.stockAdjustment) {
+                        this.showNotification('请输入库存调整值', 'error');
+                        return;
+                    }
+                    
+                    try {
+                        const newStock = parseInt(this.batchOperations.stockAdjustment);
+                        await axios.patch('/api/products/batch/stock', {
+                            productIds: this.selectedProducts,
+                            newStock: newStock
+                        });
+                        
+                        this.showNotification('批量库存调整成功', 'success');
+                        this.batchOperations.stockAdjustment = '';
+                        this.loadAllProducts();
+                    } catch (error) {
+                        console.error('批量库存调整失败:', error);
+                        this.showNotification('批量库存调整失败', 'error');
+                    }
+                },
+                
+                handleTabClick(tab) {
+                    if (tab.name === 'products' && this.products.length === 0) {
+                        this.loadAllProducts();
+                    }
+                },
+                
+                async handleFileUpload(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    try {
+                        const response = await axios.post('/api/products/import', formData, {
+                            headers: {
+                                'Content-Type': 'multipart/form-data'
+                            }
+                        });
+                        
+                        this.importResult = response.data;
+                        this.showNotification('数据导入完成', 'success');
+                        this.loadAllProducts(); // 重新加载产品列表
+                    } catch (error) {
+                        console.error('导入失败:', error);
+                        this.importResult = {
+                            successCount: 0,
+                            errorCount: 1,
+                            errors: error.response?.data?.message || error.message
+                        };
+                        this.showNotification('数据导入失败', 'error');
+                    }
+                },
+                
+                showNotification(message, type) {
+                    this.notification = {
+                        message: message,
+                        type: type
+                    };
+                    
+                    setTimeout(() => {
+                        this.notification = {
+                            message: '',
+                            type: ''
+                        };
+                    }, 3000);
+                }
+            },
+            
+            mounted() {
+                this.loadAllProducts();
+            }
+        });
+    </script>
+</body>
+</html>
